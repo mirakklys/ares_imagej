@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+title: "Ares ImageJ/Fiji Tools"
+message: "If you use this software, please cite it using the metadata below."
+type: software
+authors:
+  - family-names: "Sarsenov"
+    given-names: "Radmir"
+license: "MIT"
+version: "1.0.0"
+date-released: 2026-04-02
+abstract: "A small collection of ImageJ/Fiji JavaScript tools for stack alignment, ROI intensity measurement, and stack-aware cropping."
+keywords:
+  - ImageJ
+  - Fiji
+  - microscopy
+  - fluorescence
+  - hyperstack

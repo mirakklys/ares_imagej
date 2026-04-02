@@ -1,0 +1,582 @@
+\documentclass[11pt,a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{enumitem}
+\usepackage{longtable}
+
+% Colors
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{linkblue}{rgb}{0.0,0.4,0.7}
+
+% Hyperref setup
+\hypersetup{
+    colorlinks=true,
+    linkcolor=linkblue,
+    filecolor=magenta,
+    urlcolor=linkblue,
+    pdftitle={Intensity Measure - ImageJ ROI Intensity Analysis},
+    pdfauthor={},
+}
+
+% Code listing style
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    frame=single,
+    framerule=0pt,
+}
+\lstset{style=mystyle}
+
+% Header/Footer
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Intensity Measure Documentation}
+\lhead{ImageJ ROI Intensity Analysis}
+\rfoot{Page \thepage}
+
+% Title formatting
+\titleformat{\section}
+    {\normalfont\Large\bfseries\color{linkblue}}{\thesection}{1em}{}
+\titleformat{\subsection}
+    {\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+    {\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
+% Document info
+\title{
+    \vspace{-1cm}
+    \textbf{\LARGE Intensity Measure}\\[0.5cm]
+    \large ImageJ ROI Intensity Analysis Script\\[0.3cm]
+    \normalsize Documentation \& User Guide\\[0.2cm]
+    \small Version 2.1
+}
+\author{Radmir Sarsenov}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+\vspace{1cm}
+
+\begin{abstract}
+\noindent
+A JavaScript macro for ImageJ/Fiji that measures fluorescence intensity across image stacks with \textbf{multiple normalization methods}. Suitable for time-lapse imaging, photobleaching studies, calcium imaging, FRAP, and general fluorescence quantification. This script offers six different normalization methods including F/F$_0$, $\Delta$F/F$_0$, Z-score, and more.
+\end{abstract}
+
+\vspace{0.5cm}
+\tableofcontents
+\newpage
+
+%==============================================================================
+\section{Overview}
+%==============================================================================
+
+This script automates the process of measuring fluorescence intensity changes across a time-lapse image stack. It offers \textbf{six different normalization methods} to suit various experimental needs, from photobleaching analysis to calcium imaging to protein expression quantification.
+
+\subsection{Use Cases}
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Photobleaching / FRAP}: Track fluorescence decay or recovery over time
+    \item \textbf{Calcium imaging}: Monitor intracellular calcium dynamics
+    \item \textbf{Drug response}: Measure intensity changes upon treatment
+    \item \textbf{Expression analysis}: Compare fluorescence levels across conditions
+    \item \textbf{Time-lapse studies}: Quantify any temporal intensity changes
+\end{itemize}
+
+%==============================================================================
+\section{Features}
+%==============================================================================
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Six normalization methods}: F/F$_0$, $\Delta$F/F$_0$, background subtraction, percent of max, Z-score, or raw values
+    \item \textbf{Flexible background selection}: Click on the image, type coordinates, or skip background correction
+    \item \textbf{Multiple ROI tools}: Rectangle, Oval, Freehand, Polygon, Brush, or use existing ROI
+    \item \textbf{Per-frame background correction}: Accounts for fluctuating background
+    \item \textbf{CTCF calculation}: Corrected Total Cell Fluorescence for every frame
+    \item \textbf{Validation checks}: Ensures selections are within image bounds
+    \item \textbf{Results table output}: Easy export to CSV for further analysis
+\end{itemize}
+
+%==============================================================================
+\section{Installation}
+%==============================================================================
+
+\subsection{Requirements}
+
+\begin{itemize}
+    \item \href{https://imagej.nih.gov/ij/}{ImageJ} (v1.53+) or \href{https://fiji.sc/}{Fiji}
+\end{itemize}
+
+\subsection{Setup}
+
+\begin{enumerate}
+    \item Download \texttt{Intensity\_measure.js}
+    \item Place it in your ImageJ plugins folder:
+    \begin{itemize}
+        \item \textbf{Windows}: \texttt{C:\textbackslash Program Files\textbackslash ImageJ\textbackslash plugins\textbackslash}
+        \item \textbf{macOS}: \texttt{/Applications/ImageJ.app/plugins/}
+        \item \textbf{Linux}: \texttt{\textasciitilde/ImageJ/plugins/}
+    \end{itemize}
+    \item Restart ImageJ, or use \texttt{Plugins > Macros > Run...} to execute directly
+\end{enumerate}
+
+%==============================================================================
+\section{Usage}
+%==============================================================================
+
+\subsection{Step-by-Step Guide}
+
+\subsubsection{Step 1: Open Your Image Stack}
+
+Open your time-lapse fluorescence image stack in ImageJ:
+\begin{itemize}
+    \item \texttt{File > Open...} or drag-and-drop
+    \item Ensure it's a stack (multiple frames), not a single image
+\end{itemize}
+
+\subsubsection{Step 2: Run the Script}
+
+\begin{itemize}
+    \item \texttt{Plugins > Macros > Run...} $\rightarrow$ Select \texttt{Intensity\_measure.js}
+    \item Or if installed: \texttt{Plugins > Intensity\_measure}
+\end{itemize}
+
+\subsubsection{Step 3: Select Normalization Method}
+
+Choose from six normalization options:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Method} & \textbf{Output Range} & \textbf{Best For} \\
+\midrule
+F/F$_0$ (default) & Starts at 1.0 & Photobleaching, FRAP, general time-lapse \\
+$\Delta$F/F$_0$ & Starts at 0.0 & Calcium imaging, stimulus response \\
+Background subtraction & Absolute units & Simple correction, comparing intensities \\
+Percent of maximum & 0--100\% & Normalizing across experiments \\
+Z-score & Mean=0, SD=1 & Statistical comparison, outlier detection \\
+Raw values & Original units & No processing needed \\
+\bottomrule
+\end{tabular}
+\caption{Available normalization methods}
+\end{table}
+
+\subsubsection{Step 4: Select Background Point}
+
+You'll see a dialog asking how to select the background reference:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Option} & \textbf{Description} \\
+\midrule
+Click to select & Use the Point tool to click on a background region \\
+Type coordinates & Enter exact X, Y pixel coordinates \\
+No background correction & Skip background subtraction entirely \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Tips for background selection:}
+\begin{itemize}
+    \item Choose a region with NO fluorescent signal
+    \item Avoid dark artifacts or dead pixels
+    \item The same pixel location is used across all frames
+\end{itemize}
+
+\subsubsection{Step 5: Select Target ROI}
+
+Choose your preferred ROI selection method:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Option} & \textbf{Description} \\
+\midrule
+Rectangle & Draw a rectangular selection \\
+Oval & Draw an elliptical selection \\
+Freehand & Draw a freeform closed shape \\
+Polygon & Click vertices to create a polygon \\
+Brush & Paint the selection with a brush \\
+Use existing ROI & Use a previously drawn ROI on the image \\
+Type coordinates (Rectangle) & Enter X, Y, Width, Height for a rectangle \\
+Type coordinates (Oval) & Enter X, Y, Width, Height for an oval \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Step 6: View Results}
+
+A Results Table will appear with measurements for each slice:
+
+\begin{lstlisting}[language={},numbers=none]
+Slice | Raw_Mean | Background | F_corrected | F/F0   | CTCF
+------+----------+------------+-------------+--------+--------
+1     | 1500.0   | 100.0      | 1400.0      | 1.0000 | 56000.0
+2     | 1450.0   | 102.0      | 1348.0      | 0.9629 | 53920.0
+3     | 1380.0   | 99.0       | 1281.0      | 0.9150 | 51240.0
+\end{lstlisting}
+
+\subsubsection{Step 7: Export Data}
+
+\begin{itemize}
+    \item \texttt{File > Save As...} in the Results window
+    \item Save as \texttt{.csv} for Excel, Python, R, MATLAB, etc.
+\end{itemize}
+
+%==============================================================================
+\section{Normalization Methods}
+%==============================================================================
+
+\subsection{F/F$_0$ (Normalize to First Frame)}
+
+\textbf{Formula:}
+\begin{equation}
+\frac{F}{F_0} = \frac{F(t)}{F(t_0)}
+\end{equation}
+
+\begin{itemize}
+    \item Output starts at \textbf{1.0} and changes from there
+    \item Standard for \textbf{photobleaching}, \textbf{FRAP}, general time-lapse
+    \item Easy to interpret: 0.5 = 50\% of initial intensity
+\end{itemize}
+
+\subsection{$\Delta$F/F$_0$ (Fold Change from Baseline)}
+
+\textbf{Formula:}
+\begin{equation}
+\frac{\Delta F}{F_0} = \frac{F(t) - F(t_0)}{F(t_0)}
+\end{equation}
+
+\begin{itemize}
+    \item Output starts at \textbf{0.0} (baseline)
+    \item Standard for \textbf{calcium imaging}, stimulus-response experiments
+    \item Positive values = increase, negative = decrease
+    \item A value of 1.0 means 100\% increase (doubled)
+\end{itemize}
+
+\subsection{Background Subtraction Only}
+
+\textbf{Formula:}
+\begin{equation}
+F_{\text{corrected}} = F(t) - F_{\text{background}}(t)
+\end{equation}
+
+\begin{itemize}
+    \item Returns absolute intensity values (background-corrected)
+    \item Good for comparing intensities within the same experiment
+    \item No normalization to baseline
+\end{itemize}
+
+\subsection{Percent of Maximum}
+
+\textbf{Formula:}
+\begin{equation}
+\% = \frac{F - F_{\min}}{F_{\max} - F_{\min}} \times 100
+\end{equation}
+
+\begin{itemize}
+    \item Scales data to \textbf{0--100\%} range
+    \item Useful for comparing across different experiments
+    \item Min intensity = 0\%, Max intensity = 100\%
+\end{itemize}
+
+\subsection{Z-score Normalization}
+
+\textbf{Formula:}
+\begin{equation}
+Z = \frac{F - \mu}{\sigma}
+\end{equation}
+
+\begin{itemize}
+    \item Mean becomes 0, standard deviation becomes 1
+    \item Good for \textbf{statistical comparisons} across experiments
+    \item Identifies outliers ($|Z| > 2$ or 3)
+\end{itemize}
+
+\subsection{Raw Values (No Normalization)}
+
+\begin{itemize}
+    \item Returns the original mean intensity values
+    \item No background correction or normalization applied
+    \item Use when you need unprocessed data
+\end{itemize}
+
+%==============================================================================
+\section{Output Columns Explained}
+%==============================================================================
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}p{2.5cm}p{4.5cm}p{6cm}@{}}
+\toprule
+\textbf{Column} & \textbf{Formula} & \textbf{Description} \\
+\midrule
+Slice & --- & Frame number (1-indexed) \\
+Raw\_Mean & $\text{mean}(\text{ROI pixels})$ & Uncorrected mean intensity within ROI \\
+Background & $\text{pixel}(x_{ref}, y_{ref})$ & Background value at reference point (if used) \\
+F\_corrected & $\text{Raw\_Mean} - \text{Background}$ & Background-subtracted mean intensity \\
+[Normalized] & Varies by method & The normalized value (column name depends on method) \\
+CTCF & $(A \times \bar{I}) - (A \times \bar{I}_{bg})$ & Corrected Total Cell Fluorescence \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%==============================================================================
+\section{Mathematical Background}
+%==============================================================================
+
+\subsection{F/F$_0$ Normalization}
+
+The \textbf{F/F$_0$} ratio normalizes all measurements to the first frame:
+
+\begin{equation}
+\frac{F}{F_0} = \frac{F(t) - F_{bg}(t)}{F(t_0) - F_{bg}(t_0)}
+\end{equation}
+
+Where:
+\begin{itemize}
+    \item $F(t)$ = Mean fluorescence intensity at time $t$
+    \item $F_{bg}(t)$ = Background intensity at time $t$
+    \item $F(t_0)$ = Mean fluorescence at the first frame
+    \item $F_{bg}(t_0)$ = Background at the first frame
+\end{itemize}
+
+\subsection{$\Delta$F/F$_0$ (Fold Change)}
+
+\begin{equation}
+\frac{\Delta F}{F_0} = \frac{F(t) - F_0}{F_0} = \frac{F}{F_0} - 1
+\end{equation}
+
+This is simply F/F$_0$ minus 1, shifting the baseline to 0.
+
+\subsection{CTCF (Corrected Total Cell Fluorescence)}
+
+CTCF accounts for both intensity and area:
+
+\begin{equation}
+\text{CTCF} = (A_{\text{ROI}} \times \bar{I}_{\text{ROI}}) - (A_{\text{ROI}} \times \bar{I}_{\text{background}})
+\end{equation}
+
+This is useful when comparing absolute fluorescence amounts across different sized structures.
+
+\subsection{Exponential Decay Fitting}
+
+For photobleaching analysis, fit your F/F$_0$ data to:
+
+\begin{equation}
+\frac{F}{F_0} = A \cdot e^{-t/\tau} + B
+\end{equation}
+
+Where:
+\begin{itemize}
+    \item $\tau$ = photobleaching time constant
+    \item $A$ = bleachable fraction
+    \item $B$ = non-bleachable baseline
+\end{itemize}
+
+\textbf{Half-life calculation:}
+\begin{equation}
+t_{1/2} = \tau \cdot \ln(2) \approx 0.693 \cdot \tau
+\end{equation}
+
+%==============================================================================
+\section{Best Practices}
+%==============================================================================
+
+\subsection{For Time-Lapse Experiments}
+
+\begin{enumerate}
+    \item \textbf{Consistent imaging conditions}
+    \begin{itemize}
+        \item Same exposure time for all frames
+        \item Same excitation intensity
+        \item Let laser/lamp stabilize before imaging
+    \end{itemize}
+    
+    \item \textbf{Background selection}
+    \begin{itemize}
+        \item Choose a region that never contains signal
+        \item Avoid edges of the field of view
+        \item Check that background doesn't change dramatically
+    \end{itemize}
+    
+    \item \textbf{ROI selection}
+    \begin{itemize}
+        \item Include the entire fluorescent structure
+        \item Don't include neighboring cells/structures
+        \item Use the same ROI for all comparisons
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Choosing a Normalization Method}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Experiment Type} & \textbf{Recommended Method} \\
+\midrule
+Photobleaching & F/F$_0$ \\
+FRAP & F/F$_0$ \\
+Calcium imaging & $\Delta$F/F$_0$ \\
+Drug response & $\Delta$F/F$_0$ or F/F$_0$ \\
+Comparing expression levels & Background subtraction or CTCF \\
+Cross-experiment comparison & Percent of max or Z-score \\
+Raw data export & Raw values \\
+\bottomrule
+\end{tabular}
+\caption{Recommended normalization methods by experiment type}
+\end{table}
+
+%==============================================================================
+\section{Troubleshooting}
+%==============================================================================
+
+\subsection{``Initial ROI intensity is <= background''}
+
+\textbf{Cause:} Your selected ROI has lower intensity than the background reference point.
+
+\textbf{Solution:}
+\begin{itemize}
+    \item Check that the background point is truly in a dark region
+    \item Ensure the ROI contains fluorescent signal
+    \item Try ``No background correction'' option
+    \item Verify you're on the correct image/channel
+\end{itemize}
+
+\subsection{``No ROI selected''}
+
+\textbf{Cause:} You clicked OK without drawing a selection.
+
+\textbf{Solution:}
+\begin{itemize}
+    \item Draw the ROI first, then click OK
+    \item For ``Use existing ROI'': ensure an ROI exists before running the script
+\end{itemize}
+
+\subsection{``Coordinates out of image bounds''}
+
+\textbf{Cause:} Typed coordinates exceed image dimensions.
+
+\textbf{Solution:}
+\begin{itemize}
+    \item Check image size: \texttt{Image > Properties}
+    \item Coordinates are 0-indexed (0 to width-1, 0 to height-1)
+\end{itemize}
+
+\subsection{Results show NaN or Infinity}
+
+\textbf{Cause:} Division by zero ($F_0 = 0$) or invalid measurements.
+
+\textbf{Solution:}
+\begin{itemize}
+    \item Background point might be inside a bright region
+    \item Try ``Background subtraction only'' method
+    \item Check for corrupted frames in the stack
+\end{itemize}
+
+\subsection{Unexpected normalized values}
+
+\textbf{Cause:} Intensity changes not matching expectations.
+
+\textbf{Solution:}
+\begin{itemize}
+    \item Verify background point is in a non-fluorescent region
+    \item Check for photobleaching during setup
+    \item Ensure first frame is representative baseline
+\end{itemize}
+
+%==============================================================================
+\section{Example Workflow}
+%==============================================================================
+
+\begin{enumerate}
+    \item Open stack: \texttt{File > Open > my\_timelapse.tif}
+    \item Run script: \texttt{Plugins > Macros > Run > Intensity\_measure.js}
+    \item Normalization: Select ``F/F0 (Normalize to first frame)''
+    \item Background: Click to select $\rightarrow$ Click on dark region $\rightarrow$ OK
+    \item ROI: Freehand $\rightarrow$ Trace around cell $\rightarrow$ OK
+    \item Results table appears
+    \item Export: \texttt{File > Save As > intensity\_data.csv}
+    \item Analyze/plot in your preferred software
+\end{enumerate}
+
+%==============================================================================
+\section{File Structure}
+%==============================================================================
+
+\begin{lstlisting}[language={},numbers=none]
+Ares/
+    Align_Stack.js
+    Crop_Stack_Subsets.js
+    Intensity_measure.js
+    Intensity_measure_documentation.tex
+    README.md
+    CHANGELOG.md
+    CITATION.cff
+    docs/
+        intensity-measure.md
+        align-stack.md
+        stack-crop-subsets.md
+\end{lstlisting}
+
+%==============================================================================
+\section{Changelog}
+%==============================================================================
+
+\begin{description}
+    \item[v1.0] Initial release with basic rectangle ROI and point background
+    \item[v1.1] Added coordinate input options
+    \item[v1.2] Added F/F$_0$ photobleaching normalization
+    \item[v1.3] Added multiple ROI selection tools (oval, freehand, polygon, brush)
+    \item[v2.0] Added multiple normalization methods (F/F$_0$, $\Delta$F/F$_0$, background subtraction, percent max, Z-score, raw)
+    \item[v2.1] Corrected CTCF area handling for non-rectangular ROIs and updated repository documentation structure
+\end{description}
+
+\vfill
+
+\begin{center}
+\rule{0.5\textwidth}{0.4pt}\\[0.5cm]
+\textbf{Author:} Radmir Sarsenov\\[0.3cm]
+\textbf{License:} MIT License\\[0.3cm]
+\small Copyright \textcopyright{} 2026 Radmir Sarsenov
+\end{center}
+
+\end{document}
